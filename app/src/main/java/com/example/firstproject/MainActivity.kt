@@ -8,11 +8,23 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.GridLayoutManager
+import com.example.firstproject.adapter.ProductAdapter
 import com.example.firstproject.databinding.ActivityMainBinding
+import com.example.firstproject.listitems.Products
+import com.example.firstproject.model.Product
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding:ActivityMainBinding
+    private lateinit var productAdapter: ProductAdapter
+    private val products = Products()
+    private val productList: MutableList<Product> = mutableListOf()
+
     var clicked = false
 
     @SuppressLint("ResourceAsColor")
@@ -21,6 +33,22 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        window.statusBarColor = Color.parseColor("#E0E0E0")
+
+        CoroutineScope(Dispatchers.IO).launch {
+            products.getProducts().collectIndexed { index, value ->
+                for(p in value){
+                    productList.add(p)
+                }
+            }
+        }
+
+        val recyclerViewProducts = binding.recyclerViewProducts
+        recyclerViewProducts.layoutManager = GridLayoutManager(this,2)
+        recyclerViewProducts.setHasFixedSize(true)
+        productAdapter = ProductAdapter(this,productList)
+        recyclerViewProducts.adapter = productAdapter
 
 
         binding.btAll.setOnClickListener(){
@@ -34,7 +62,7 @@ class MainActivity : AppCompatActivity() {
                 binding.btKebab.setTextColor(R.color.dark_gray)
                 binding.btPizza.setBackgroundResource(R.drawable.bg_button_disabled)
                 binding.btPizza.setTextColor(R.color.dark_gray)
-                binding.recyclerViewProducts.visibility = View.INVISIBLE
+                binding.recyclerViewProducts.visibility = View.VISIBLE
                 binding.txtListTitle.text = "All"
             }
         }
@@ -66,7 +94,7 @@ class MainActivity : AppCompatActivity() {
                 binding.btKebab.setTextColor(R.color.dark_gray)
                 binding.btPizza.setBackgroundResource(R.drawable.bg_button_enabled)
                 binding.btPizza.setTextColor(Color.WHITE)
-                binding.recyclerViewProducts.visibility = View.INVISIBLE
+                binding.recyclerViewProducts.visibility = View.VISIBLE
                 binding.txtListTitle.text = "Popular Pizza"
             }
         }
